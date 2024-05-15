@@ -7,3 +7,4 @@ DerivedData/
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .swiftpm/xcode/package.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
 .netrc
+WysiwygComposerFFI.xcframework.zip
