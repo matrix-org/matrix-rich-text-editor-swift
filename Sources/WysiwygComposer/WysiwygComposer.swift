@@ -1702,6 +1702,7 @@ public struct FfiConverterTypeDomCreationError: FfiConverterRustBuffer {
         let variant: Int32 = try readInt(&buf)
         switch variant {
         case 1: return .HtmlParseError
+
         case 2: return .MarkdownParseError
 
         default: throw UniffiInternalError.unexpectedEnumCase
