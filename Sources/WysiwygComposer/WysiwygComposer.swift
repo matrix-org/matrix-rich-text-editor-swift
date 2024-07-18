@@ -535,13 +535,15 @@ public protocol ComposerModelProtocol: AnyObject {
 
     func replaceTextIn(newText: String, start: UInt32, end: UInt32) throws -> ComposerUpdate
 
-    func replaceTextSuggestion(newText: String, suggestion: SuggestionPattern) throws -> ComposerUpdate
+    func replaceTextSuggestion(newText: String, suggestion: SuggestionPattern, appendSpace: Bool) throws -> ComposerUpdate
 
     func select(startUtf16Codeunit: UInt32, endUtf16Codeunit: UInt32) throws -> ComposerUpdate
 
     func setContentFromHtml(html: String) throws -> ComposerUpdate
 
     func setContentFromMarkdown(markdown: String) throws -> ComposerUpdate
+
+    func setCustomSuggestionPatterns(customSuggestionPatterns: [String])
 
     func setLink(url: String, attributes: [Attribute]) throws -> ComposerUpdate
 
@@ -899,13 +901,14 @@ open class ComposerModel:
         )
     }
 
-    open func replaceTextSuggestion(newText: String, suggestion: SuggestionPattern) throws -> ComposerUpdate {
+    open func replaceTextSuggestion(newText: String, suggestion: SuggestionPattern, appendSpace: Bool) throws -> ComposerUpdate {
         return try FfiConverterTypeComposerUpdate.lift(
             try
                 rustCall {
                     uniffi_uniffi_wysiwyg_composer_fn_method_composermodel_replace_text_suggestion(self.uniffiClonePointer(),
                                                                                                    FfiConverterString.lower(newText),
-                                                                                                   FfiConverterTypeSuggestionPattern.lower(suggestion), $0)
+                                                                                                   FfiConverterTypeSuggestionPattern.lower(suggestion),
+                                                                                                   FfiConverterBool.lower(appendSpace), $0)
                 }
         )
     }
@@ -937,6 +940,14 @@ open class ComposerModel:
                                                                                                  FfiConverterString.lower(markdown), $0)
             }
         )
+    }
+
+    open func setCustomSuggestionPatterns(customSuggestionPatterns: [String]) {
+        try!
+            rustCall {
+                uniffi_uniffi_wysiwyg_composer_fn_method_composermodel_set_custom_suggestion_patterns(self.uniffiClonePointer(),
+                                                                                                      FfiConverterSequenceString.lower(customSuggestionPatterns), $0)
+            }
     }
 
     open func setLink(url: String, attributes: [Attribute]) throws -> ComposerUpdate {
@@ -1933,6 +1944,8 @@ public enum PatternKey {
     case at
     case hash
     case slash
+    case custom(String
+    )
 }
 
 public struct FfiConverterTypePatternKey: FfiConverterRustBuffer {
@@ -1946,6 +1959,9 @@ public struct FfiConverterTypePatternKey: FfiConverterRustBuffer {
         case 2: return .hash
 
         case 3: return .slash
+
+        case 4: return try .custom(FfiConverterString.read(from: &buf)
+            )
 
         default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -1961,6 +1977,10 @@ public struct FfiConverterTypePatternKey: FfiConverterRustBuffer {
 
         case .slash:
             writeInt(&buf, Int32(3))
+
+        case let .custom(v1):
+            writeInt(&buf, Int32(4))
+            FfiConverterString.write(v1, into: &buf)
         }
     }
 }
@@ -2246,7 +2266,7 @@ private var initializationResult: InitializationResult {
     if uniffi_uniffi_wysiwyg_composer_checksum_method_composermodel_replace_text_in() != 26973 {
         return InitializationResult.apiChecksumMismatch
     }
-    if uniffi_uniffi_wysiwyg_composer_checksum_method_composermodel_replace_text_suggestion() != 62641 {
+    if uniffi_uniffi_wysiwyg_composer_checksum_method_composermodel_replace_text_suggestion() != 6979 {
         return InitializationResult.apiChecksumMismatch
     }
     if uniffi_uniffi_wysiwyg_composer_checksum_method_composermodel_select() != 39648 {
@@ -2256,6 +2276,9 @@ private var initializationResult: InitializationResult {
         return InitializationResult.apiChecksumMismatch
     }
     if uniffi_uniffi_wysiwyg_composer_checksum_method_composermodel_set_content_from_markdown() != 15667 {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if uniffi_uniffi_wysiwyg_composer_checksum_method_composermodel_set_custom_suggestion_patterns() != 8446 {
         return InitializationResult.apiChecksumMismatch
     }
     if uniffi_uniffi_wysiwyg_composer_checksum_method_composermodel_set_link() != 31503 {
